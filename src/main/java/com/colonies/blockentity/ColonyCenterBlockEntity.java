@@ -45,14 +45,16 @@ public class ColonyCenterBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
-        tag.putInt("ColonyId", colonyId);
+    protected void saveAdditional(net.minecraft.nbt.Tag tag, net.minecraft.core.HolderLookup.Provider registries) {
+        if (tag instanceof CompoundTag ct) {
+            ct.putInt("ColonyId", colonyId);
+        }
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        this.colonyId = tag.getInt("ColonyId");
+    public void load(net.minecraft.nbt.Tag tag, net.minecraft.core.HolderLookup.Provider registries) {
+        if (tag instanceof CompoundTag ct) {
+            this.colonyId = ct.getInt("ColonyId");
+        }
     }
 }

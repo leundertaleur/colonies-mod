@@ -64,6 +64,12 @@ public class ColonyManager {
 
     public void removeColony(int id) { colonies.remove(id); }
 
+    /** Envoie les donnees synchronisees d'une colonie a un joueur (utilise quand l'UI s'ouvre). */
+    public void sendSyncTo(ServerPlayer player, int colonyId) {
+        getById(colonyId).ifPresent(colony ->
+                PacketDistributor.sendToPlayer(player, new SyncColonyPayload(colony.toSyncTag())));
+    }
+
     /** Tick global (serveur) : production + niveau + synchro vers le joueur concerne. */
     public void tick(MinecraftServer server) {
         if (!loaded) load(server);

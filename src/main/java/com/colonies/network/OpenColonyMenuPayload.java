@@ -3,7 +3,6 @@ package com.colonies.network;
 import com.colonies.Colonies;
 import com.colonies.menu.ColonyMenu;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -32,14 +31,21 @@ public record OpenColonyMenuPayload(int colonyId, String colonyName) implements 
     public static void handle(OpenColonyMenuPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             Minecraft mc = Minecraft.getInstance();
-            ClientLevel level = mc.level;
-            if (level == null || mc.player == null) return;
-            ColonyMenu menu = new ColonyMenu(
-                    level.addContainerMenu(-128), mc.player.getInventory(), payload.colonyId());
-            // containerId negatif => aucune synchronisation d'slots avec le serveur : menu local.
+            if (mc.level == null || mc.player == null) return;
+            ColonyMenu menu = new ColonyMenu(-128, mc.player.getInventory(), payload.colonyId());
+            // containerId negatif => aucun slot synchronise avec le serveur : menu local lecture seule.
             mc.player.containerMenu = menu;
-            mc.setScreen(new com.colonies.client.ColonyScreen(menu, mc.player.getInventory(),
-                    Component.literal(payload.colonyName())));
+            Component title = Component.literal(payload.colonyName().isEmpty() ? "Colonie" : payload.colonyName());
+            mc.setScreen(new com.colonies.client.ColonyScreen(menu, mc.player.getInventory(), title));
+            // Force une synchro immediate des donnees de colonie vers ce client :
+            // sans hook reseau, c'est la facon portable d'ouvrir un custom GUI en 21.1.x.
+            try {
+                net.minecraft.server.MinecraftServer server = mc.level.getServer();
+                if (server != null && mc.player instanceof net.minecraft.server.level.ServerPlayer sp) {
+                    com.colonies.colony.ColonyManager.getInstance()
+                            .sendSyncTo(sp, payload.colonyId());
+                }
+            } catch (Exception ignored) {}
         });
     }
 }
