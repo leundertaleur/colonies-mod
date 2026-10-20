@@ -4,7 +4,6 @@ import com.colonies.Colonies;
 import com.colonies.colony.ColonyManager;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,7 +23,9 @@ public record RequestOpenColonyScreenPayload(int colonyId) implements CustomPack
             new Type<>(Colonies.id("request_open_colony_screen"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, RequestOpenColonyScreenPayload> STREAM_CODEC =
-            ByteBufCodecs.VAR_INT.map(RequestOpenColonyScreenPayload::new, RequestOpenColonyScreenPayload::colonyId);
+            StreamCodec.of(
+                    (buf, payload) -> buf.writeVarInt(payload.colonyId()),
+                    buf -> new RequestOpenColonyScreenPayload(buf.readVarInt()));
 
     @Override
     public Type<? extends CustomPacketPayload> type() { return TYPE; }

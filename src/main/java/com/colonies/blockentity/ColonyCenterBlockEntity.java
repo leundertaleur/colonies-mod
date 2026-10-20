@@ -37,9 +37,7 @@ public class ColonyCenterBlockEntity extends BlockEntity {
     /** Clic droit sur le centre : fonde la colonie puis demande l'ouverture du GUI client. */
     public void openGui(ServerPlayer player) {
         if (ensureColony(player) != -1) {
-            String name = ColonyManager.getInstance().getById(colonyId)
-                    .map(c -> c.getName()).orElse("");
-            PacketDistributor.sendToPlayer(player, new com.colonies.network.OpenColonyMenuPayload(colonyId, name));
+            PacketDistributor.sendToPlayer(player, new com.colonies.network.OpenColonyMenuPayload(colonyId));
         }
     }
 

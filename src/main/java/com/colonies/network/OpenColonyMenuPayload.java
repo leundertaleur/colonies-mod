@@ -2,7 +2,6 @@ package com.colonies.network;
 
 import com.colonies.Colonies;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
@@ -19,7 +18,9 @@ public record OpenColonyMenuPayload(int colonyId) implements CustomPacketPayload
     public static final Type<OpenColonyMenuPayload> TYPE = new Type<>(Colonies.id("open_colony_menu"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, OpenColonyMenuPayload> STREAM_CODEC =
-            ByteBufCodecs.VAR_INT.map(OpenColonyMenuPayload::new, OpenColonyMenuPayload::colonyId);
+            StreamCodec.of(
+                    (buf, payload) -> buf.writeVarInt(payload.colonyId()),
+                    buf -> new OpenColonyMenuPayload(buf.readVarInt()));
 
     @Override
     public Type<? extends CustomPacketPayload> type() { return TYPE; }
