@@ -117,23 +117,22 @@ public class WorkerHutBlockEntity extends BlockEntity {
 
     public int getColonyId() { return colonyId; }
 
-    // Signatures compatibles avec TOUTES les versions NeoForge 21.1.x :
-    // les builds recents utilisent saveAdditional(Tag, HolderLookup.Provider).
+    // Signatures officielles verifiees sur NeoForge 21.1.262 / MC 1.21.1 (javap sur BlockEntity.class) :
+    //   protected void saveAdditional(CompoundTag, HolderLookup.Provider)
+    //   protected void loadAdditional(CompoundTag, HolderLookup.Provider)
     @Override
-    protected void saveAdditional(net.minecraft.nbt.Tag tag, net.minecraft.core.HolderLookup.Provider registries) {
-        if (tag instanceof CompoundTag ct) {
-            ct.putInt("ColonyId", colonyId);
-            ct.putBoolean("Initialized", initialized);
-            if (workerUuid != null) ct.putUUID("WorkerUuid", workerUuid);
-        }
+    protected void saveAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.putInt("ColonyId", colonyId);
+        tag.putBoolean("Initialized", initialized);
+        if (workerUuid != null) tag.putUUID("WorkerUuid", workerUuid);
     }
 
     @Override
-    public void load(net.minecraft.nbt.Tag tag, net.minecraft.core.HolderLookup.Provider registries) {
-        if (tag instanceof CompoundTag ct) {
-            this.colonyId = ct.getInt("ColonyId");
-            this.initialized = ct.getBoolean("Initialized");
-            if (ct.hasUUID("WorkerUuid")) this.workerUuid = ct.getUUID("WorkerUuid");
-        }
+    protected void loadAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        this.colonyId = tag.getInt("ColonyId");
+        this.initialized = tag.getBoolean("Initialized");
+        if (tag.hasUUID("WorkerUuid")) this.workerUuid = tag.getUUID("WorkerUuid");
     }
 }

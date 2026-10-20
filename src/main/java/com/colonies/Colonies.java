@@ -70,6 +70,12 @@ public class Colonies {
         registrar.playToClient(com.colonies.network.OpenColonyMenuPayload.TYPE,
                 com.colonies.network.OpenColonyMenuPayload.STREAM_CODEC,
                 com.colonies.network.OpenColonyMenuPayload::handle);
+        registrar.playToServer(com.colonies.network.RequestOpenColonyScreenPayload.TYPE,
+                com.colonies.network.RequestOpenColonyScreenPayload.STREAM_CODEC,
+                com.colonies.network.RequestOpenColonyScreenPayload::handle);
+        registrar.playToClient(com.colonies.network.ShowColonyScreenPayload.TYPE,
+                com.colonies.network.ShowColonyScreenPayload.STREAM_CODEC,
+                com.colonies.network.ShowColonyScreenPayload::handle);
     }
 
     @SubscribeEvent
