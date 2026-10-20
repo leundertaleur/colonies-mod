@@ -14,7 +14,7 @@ public class ColonyScreen extends AbstractContainerScreen<ColonyMenu> {
         super(menu, inventory, title);
         this.imageWidth = 176;
         this.imageHeight = 220;
-        this.inventoryLabelVisible = false;
+        this.inventoryLabelY = this.imageHeight + 1000; // cache le label "Inventaire" par defaut
     }
 
     @Override

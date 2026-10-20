@@ -1,24 +1,19 @@
 package com.colonies.blockentity;
 
-import com.colonies.Colonies;
 import com.colonies.colony.Colony;
 import com.colonies.colony.ColonyManager;
 import com.colonies.registration.ColonyBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.network.PacketDistributor;
 
-/** BlockEntity du centre de colonie : attache la colonie au bloc et fournit l'UI. */
-public class ColonyCenterBlockEntity extends BlockEntity implements MenuProvider {
+/** BlockEntity du centre de colonie : attache la colonie au bloc et ouvre l'UI. */
+public class ColonyCenterBlockEntity extends BlockEntity {
     private int colonyId = -1;
 
     public ColonyCenterBlockEntity(BlockPos pos, BlockState state) {
@@ -40,25 +35,24 @@ public class ColonyCenterBlockEntity extends BlockEntity implements MenuProvider
 
     public int getColonyId() { return colonyId; }
 
-    @Override
-    public Component getDisplayName() {
-        return Component.translatable("container.colonies.colony_screen");
+    /** Clic droit sur le centre : fonde la colonie puis demande l'ouverture du GUI client. */
+    public void openGui(ServerPlayer player) {
+        if (ensureColony(player) != -1) {
+            String name = ColonyManager.getInstance().getById(colonyId)
+                    .map(c -> c.getName()).orElse("");
+            PacketDistributor.sendToPlayer(player, new com.colonies.network.OpenColonyMenuPayload(colonyId, name));
+        }
     }
 
     @Override
-    public @Nullable AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
-        return new com.colonies.client.ColonyMenu(containerId, inventory, colonyId);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        tag.putInt("ColonyId", colonyId);
     }
 
     @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
-        output.putInt("ColonyId", colonyId);
-    }
-
-    @Override
-    public void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        this.colonyId = input.getIntOr("ColonyId", -1);
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        this.colonyId = tag.getInt("ColonyId");
     }
 }

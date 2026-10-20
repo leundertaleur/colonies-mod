@@ -1,8 +1,6 @@
 package com.colonies.menu;
 
-import com.colonies.client.ColonyScreen;
 import com.colonies.colony.ColonyManager;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -32,11 +30,6 @@ public class ColonyMenu extends AbstractContainerMenu {
     public static MenuType<ColonyMenu> createMenuType() {
         return IMenuTypeExtension.create(
                 (IContainerFactory<ColonyMenu>) (windowId, inv, data) -> new ColonyMenu(windowId, inv, data));
-    }
-
-    /** Ecran client associe a ce type de menu (enregistre via ClientSetup). */
-    public static Screen createScreen(ColonyMenu menu, Inventory inv, Component title) {
-        return new ColonyScreen(menu, inv, title);
     }
 
     public int getColonyId() { return colonyId; }

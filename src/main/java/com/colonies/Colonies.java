@@ -67,6 +67,9 @@ public class Colonies {
         PayloadRegistrar registrar = event.registrar("1");
         registrar.playToClient(SyncColonyPayload.TYPE, SyncColonyPayload.STREAM_CODEC,
                 SyncColonyPayload::handle);
+        registrar.playToClient(com.colonies.network.OpenColonyMenuPayload.TYPE,
+                com.colonies.network.OpenColonyMenuPayload.STREAM_CODEC,
+                com.colonies.network.OpenColonyMenuPayload::handle);
     }
 
     @SubscribeEvent

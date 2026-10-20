@@ -1,6 +1,7 @@
 package com.colonies.colony;
 
 import com.colonies.Colonies;
+import com.colonies.client.ColonyDataSync;
 import com.colonies.network.SyncColonyPayload;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -82,23 +83,14 @@ public class ColonyManager {
     }
 
     // ---------- Cache client ----------
-    /** Recoit la synchro du serveur et stocke une copie locale pour l'UI. */
+    /** Recoit la synchro du serveur et stocke une copie locale pour l'UI (client uniquement). */
     public void handleClientSync(CompoundTag tag) {
-        Colony copy = new Colony(tag.getInt("Id"));
-        copy.setName(tag.getString("Name"));
-        // Les donnees synchronisees sont lues via toSyncTag ; on reconstruit un objet leger.
-        ClientColonyCache.put(copy.getId(), tag);
+        ColonyDataSync.put(tag.getInt("Id"), tag);
     }
 
     /** Accès client sur (id) -> CompoundTag synchronisé. */
     public static CompoundTag getSyncedColony(int id) {
-        return ClientColonyCache.get(id);
-    }
-
-    private static class ClientColonyCache {
-        private static final Map<Integer, CompoundTag> CACHE = new HashMap<>();
-        static void put(int id, CompoundTag tag) { CACHE.put(id, tag); }
-        static CompoundTag get(int id) { return CACHE.get(id); }
+        return ColonyDataSync.get(id);
     }
 
     // ---------- Persistance (fichier colonies.dat dans le monde) ----------

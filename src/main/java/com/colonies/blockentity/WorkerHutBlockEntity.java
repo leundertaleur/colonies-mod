@@ -15,8 +15,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -120,18 +118,18 @@ public class WorkerHutBlockEntity extends BlockEntity {
     public int getColonyId() { return colonyId; }
 
     @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
-        output.putInt("ColonyId", colonyId);
-        output.putBoolean("Initialized", initialized);
-        if (workerUuid != null) output.putUUID("WorkerUuid", workerUuid);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        tag.putInt("ColonyId", colonyId);
+        tag.putBoolean("Initialized", initialized);
+        if (workerUuid != null) tag.putUUID("WorkerUuid", workerUuid);
     }
 
     @Override
-    public void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        this.colonyId = input.getIntOr("ColonyId", -1);
-        this.initialized = input.getBooleanOr("Initialized", false);
-        input.readUUID("WorkerUuid").ifPresent(uuid -> this.workerUuid = uuid);
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        this.colonyId = tag.getInt("ColonyId");
+        this.initialized = tag.getBoolean("Initialized");
+        if (tag.hasUUID("WorkerUuid")) this.workerUuid = tag.getUUID("WorkerUuid");
     }
 }

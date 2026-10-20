@@ -2,14 +2,10 @@ package com.colonies.block;
 
 import com.colonies.Colonies;
 import com.colonies.blockentity.ColonyCenterBlockEntity;
-import com.colonies.client.ColonyScreenOpener;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -42,8 +38,9 @@ public class ColonyCenterBlock extends BaseEntityBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
                                                Player player, BlockHitResult hit) {
-        if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
-            ColonyScreenOpener.open(serverPlayer, pos);
+        if (!level.isClientSide && player instanceof ServerPlayer serverPlayer
+                && level.getBlockEntity(pos) instanceof ColonyCenterBlockEntity center) {
+            center.openGui(serverPlayer);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }

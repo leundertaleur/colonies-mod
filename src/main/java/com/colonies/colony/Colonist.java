@@ -49,13 +49,18 @@ public class Colonist extends Villager {
         if (level().isClientSide || !isAlive() || colonyId == -1) return;
         // Tous les 2 secondes environ : aller travailler a la hut
         if (level().getGameTime() % 40 == 0) {
-            boolean farFromWork = position().distSqr(workPosition.getCenter()) > 6.25;
+            boolean farFromWork = position().distanceToSqr(workPosition.getCenter()) > 6.25;
             if (farFromWork) {
                 getNavigation().moveTo(workPosition.getX() + 0.5, workPosition.getY(),
                         workPosition.getZ() + 0.5, 1.0);
             } else {
                 getNavigation().stop();
-                lookAt(workPosition.getCenter());
+                // Regarde la hut : calcul manuel des angles (pas de lookAt(Vec3) sur Mob en 1.21.1)
+                net.minecraft.world.phys.Vec3 delta = workPosition.getCenter().subtract(position());
+                double horizDist = Math.sqrt(delta.x * delta.x + delta.z * delta.z);
+                float yaw = (float) (Math.atan2(-delta.x, delta.z) * (180.0 / Math.PI));
+                float pitch = (float) (-Math.atan2(delta.y, horizDist) * (180.0 / Math.PI));
+                setRot(yaw, pitch);
             }
         }
     }
