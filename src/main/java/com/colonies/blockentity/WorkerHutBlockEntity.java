@@ -1,0 +1,137 @@
+package com.colonies.blockentity;
+
+import com.colonies.Colonies;
+import com.colonies.api.ColonyJob;
+import com.colonies.block.WorkerHutBlock;
+import com.colonies.colony.Colonist;
+import com.colonies.colony.Colony;
+import com.colonies.colony.ColonyManager;
+import com.colonies.registration.ColonyBlockEntities;
+import com.colonies.registration.ColonyEntities;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
+
+/** BlockEntity des cabanes : enregistre la hut aupres de la colonie et recrute un colon. */
+public class WorkerHutBlockEntity extends BlockEntity {
+    private int colonyId = -1;
+    private boolean initialized = false;
+    @Nullable
+    private UUID workerUuid = null;
+
+    public WorkerHutBlockEntity(BlockPos pos, BlockState state) {
+        super(ColonyBlockEntities.WORKER_HUT_BE.get(), pos, state);
+    }
+
+    /** Appelle periodiquement par le ticker du bloc (WorkerHutBlock#getTicker). */
+    public static <T extends BlockEntity> void serverTick(Level level, BlockPos pos, BlockState state, T be) {
+        if (be instanceof WorkerHutBlockEntity hut && level instanceof ServerLevel serverLevel) {
+            hut.tick(serverLevel);
+        }
+    }
+
+    private void tick(ServerLevel level) {
+        if (!initialized) {
+            initialize(level);
+            initialized = true;
+        }
+        // Recrutement : toutes les ~10s si la hut n'a pas d'ouvrier
+        if (level.getGameTime() % 200 == 0) {
+            recruitIfNeeded(level);
+        }
+    }
+
+    private void initialize(ServerLevel level) {
+        ColonyManager manager = ColonyManager.getInstance();
+        manager.load(level.getServer());
+        for (Colony colony : manager.getColonies()) {
+            if (colony.isInside(worldPosition)) {
+                this.colonyId = colony.getId();
+                ColonyJob job = getJob();
+                if (job != null) colony.addHut(worldPosition, job);
+                setChanged();
+                break;
+            }
+        }
+    }
+
+    @Nullable
+    public ColonyJob getJob() {
+        return getBlockState().getBlock() instanceof WorkerHutBlock block ? block.getJob() : null;
+    }
+
+    public void onRemove(Level level) {
+        if (colonyId != -1) {
+            ColonyManager.getInstance().getById(colonyId).ifPresent(c -> {
+                c.removeHut(worldPosition);
+                if (workerUuid != null) c.removeWorker(workerUuid);
+            });
+        }
+        Colonist worker = findWorker(level);
+        if (worker != null) worker.discard();
+    }
+
+    private void recruitIfNeeded(ServerLevel level) {
+        if (colonyId == -1 || getJob() == null) return;
+        if (findWorker(level) != null) return; // deja peuple
+        ColonyManager manager = ColonyManager.getInstance();
+        var opt = manager.getById(colonyId);
+        if (opt.isEmpty()) return;
+        Colony colony = opt.get();
+        if (colony.getWorkerCount() >= colony.getMaxWorkers()) return;
+
+        Colonist colonist = ColonyEntities.COLONIST.get().create(level);
+        if (colonist == null) return;
+        BlockPos spawn = worldPosition.above();
+        colonist.moveTo(spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5, 0f, 0f);
+        colonist.setPersistenceRequired();
+        colonist.setColonyId(colony.getId());
+        colonist.setColonyName(colony.getName());
+        colonist.setJobName(getJob().getId());
+        colonist.setWorkPosition(worldPosition);
+        level.addFreshEntity(colonist);
+        this.workerUuid = colonist.getUUID();
+        colony.addWorker(colonist.getUUID());
+        manager.save(level.getServer());
+        Colonies.LOGGER.info("Colon '{}' recrute pour la colonie {}", getJob().getId(), colony.getName());
+    }
+
+    @Nullable
+    private Colonist findWorker(Level level) {
+        if (workerUuid == null) return null;
+        for (Colonist entity : level.getEntitiesOfClass(Colonist.class,
+                new net.minecraft.world.phys.AABB(worldPosition).inflate(16))) {
+            if (entity.getUUID().equals(workerUuid) && entity.isAlive()) {
+                return entity;
+            }
+        }
+        return null;
+    }
+
+    public int getColonyId() { return colonyId; }
+
+    @Override
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putInt("ColonyId", colonyId);
+        output.putBoolean("Initialized", initialized);
+        if (workerUuid != null) output.putUUID("WorkerUuid", workerUuid);
+    }
+
+    @Override
+    public void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        this.colonyId = input.getIntOr("ColonyId", -1);
+        this.initialized = input.getBooleanOr("Initialized", false);
+        input.readUUID("WorkerUuid").ifPresent(uuid -> this.workerUuid = uuid);
+    }
+}

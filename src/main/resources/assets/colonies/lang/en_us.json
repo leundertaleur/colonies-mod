@@ -1,0 +1,19 @@
+{
+  "itemGroup.colonies": "Colonies",
+  "block.colonies.colony_center": "Colony Center",
+  "block.colonies.forester_hut": "Forester Hut",
+  "block.colonies.miner_hut": "Miner Hut",
+  "block.colonies.farmer_hut": "Farmer Hut",
+  "block.colonies.sawmill_hut": "Sawmill Hut",
+  "block.colonies.stores_hut": "Stores Hut",
+  "item.colonies.colony_tool": "Colony Tool",
+  "entity.colonies.colonist": "Colonist",
+  "container.colonies.colony_screen": "Colony Management",
+  "text.colonies.default_name": "My Colony",
+  "message.colonies.welcome_back": "Bienvenue dans votre colonie !",
+  "command.colonies.none": "Aucune colonie n'existe dans ce monde.",
+  "command.colonies.list_header": "Liste des colonies :",
+  "command.colonies.no_colony": "Vous n'avez pas de colonie. Placez un Centre de Colonie !",
+  "command.colonies.renamed": "Colonie renommee en %s",
+  "command.colonies.deleted": "Votre colonie a ete supprimee."
+}

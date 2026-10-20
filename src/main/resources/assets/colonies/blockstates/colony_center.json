@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "colonies:block/colony_center"
+    }
+  }
+}

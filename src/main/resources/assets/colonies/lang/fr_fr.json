@@ -1,0 +1,19 @@
+{
+  "itemGroup.colonies": "Colonies",
+  "block.colonies.colony_center": "Centre de Colonie",
+  "block.colonies.forester_hut": "Cabane du Bûcheron",
+  "block.colonies.miner_hut": "Cabane du Mineur",
+  "block.colonies.farmer_hut": "Cabane du Fermier",
+  "block.colonies.sawmill_hut": "Scierie",
+  "block.colonies.stores_hut": "Grenier",
+  "item.colonies.colony_tool": "Outil de Colonie",
+  "entity.colonies.colonist": "Colon",
+  "container.colonies.colony_screen": "Gestion de la Colonie",
+  "text.colonies.default_name": "Ma Colonie",
+  "message.colonies.welcome_back": "Bienvenue dans votre colonie !",
+  "command.colonies.none": "Aucune colonie n'existe dans ce monde.",
+  "command.colonies.list_header": "Liste des colonies :",
+  "command.colonies.no_colony": "Vous n'avez pas de colonie. Placez un Centre de Colonie !",
+  "command.colonies.renamed": "Colonie renommée en %s",
+  "command.colonies.deleted": "Votre colonie a été supprimée."
+}
