@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P ",
+    "PLP",
+    " P "
+  ],
+  "key": {
+    "P": "minecraft:oak_planks",
+    "L": "minecraft:oak_log"
+  },
+  "result": {
+    "id": "colonies:sawmill_hut",
+    "count": 1
+  }
+}

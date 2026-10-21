@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P ",
+    "PIP",
+    " P "
+  ],
+  "key": {
+    "P": "minecraft:oak_planks",
+    "I": "minecraft:stone_pickaxe"
+  },
+  "result": {
+    "id": "colonies:miner_hut",
+    "count": 1
+  }
+}

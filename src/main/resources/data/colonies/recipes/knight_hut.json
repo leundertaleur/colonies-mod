@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P ",
+    "PSP",
+    " P "
+  ],
+  "key": {
+    "P": "minecraft:oak_planks",
+    "S": "minecraft:stone_sword"
+  },
+  "result": {
+    "id": "colonies:knight_hut",
+    "count": 1
+  }
+}

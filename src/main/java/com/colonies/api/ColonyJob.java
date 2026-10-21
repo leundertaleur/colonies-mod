@@ -24,6 +24,21 @@ public enum ColonyJob {
 
     public String getId() { return id; }
 
+    /** Le metier est exerce par un Chevalier (entite dediee) et non par un Colon standard. */
+    public boolean isKnight() { return this == KNIGHT; }
+
+    /** Ce que le colon consomme comme nourriture (1 unite par jour de colonie). */
+    public Item getFoodItem() { return Items.BREAD; }
+
+    /** Salaire en emeraudes par jour de colonie. */
+    public int getWage() {
+        return switch (this) {
+            case KNIGHT -> 2;
+            case MINER -> 2;
+            default -> 1;
+        };
+    }
+
     public ItemStack getIcon() { return new ItemStack(this.iconSupplier.get()); }
 
     public static ColonyJob fromId(String id) {

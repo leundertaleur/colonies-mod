@@ -21,6 +21,8 @@ public class ColonyItems {
             ITEMS.registerSimpleBlockItem(ColonyBlocks.SAWMILL_HUT);
     public static final DeferredItem<BlockItem> STORES_HUT =
             ITEMS.registerSimpleBlockItem(ColonyBlocks.STORES_HUT);
+    public static final DeferredItem<BlockItem> KNIGHT_HUT =
+            ITEMS.registerSimpleBlockItem(ColonyBlocks.KNIGHT_HUT);
 
     // Outil pour ouvrir l'interface de gestion de colonie.
     public static final DeferredItem<Item> COLONY_TOOL = ITEMS.register("colony_tool",

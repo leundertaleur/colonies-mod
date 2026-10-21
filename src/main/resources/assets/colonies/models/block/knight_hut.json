@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "colonies:block/knight_hut_top",
+    "bottom": "minecraft:block/planks",
+    "side": "colonies:block/knight_hut_side"
+  }
+}

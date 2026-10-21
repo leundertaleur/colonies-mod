@@ -56,7 +56,16 @@ public class Colonies {
         // Events
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::registerPayloads);
+        modEventBus.addListener(this::registerAttributes);
         NeoForge.EVENT_BUS.register(this);
+    }
+
+    private void registerAttributes(
+            net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent event) {
+        event.put(com.colonies.registration.ColonyEntities.COLONIST.get(),
+                net.minecraft.world.entity.npc.Villager.createAttributes().build());
+        event.put(com.colonies.registration.ColonyEntities.KNIGHT.get(),
+                com.colonies.colony.Knight.createAttributes().build());
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {

@@ -15,5 +15,12 @@
   "command.colonies.list_header": "Liste des colonies :",
   "command.colonies.no_colony": "Vous n'avez pas de colonie. Placez un Centre de Colonie !",
   "command.colonies.renamed": "Colonie renommee en %s",
-  "command.colonies.deleted": "Votre colonie a ete supprimee."
+  "command.colonies.deleted": "Votre colonie a ete supprimee.",
+  "block.colonies.knight_hut": "Knight Barracks",
+  "entity.colonies.knight": "Colony Knight",
+  "command.colonies.deposited": "Deposited %s x %s into the colony warehouse.",
+  "command.colonies.withdrew": "Withdrew %s x %s from the colony warehouse.",
+  "command.colonies.stock": "%s: %s in stock.",
+  "command.colonies.hold_item": "Hold %s in your main hand to deposit it.",
+  "command.colonies.empty_stock": "Empty stock for %s."
 }

@@ -3,7 +3,10 @@ package com.colonies.client;
 import com.colonies.menu.ColonyMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
@@ -33,15 +36,22 @@ public class ColonyScreen extends AbstractContainerScreen<ColonyMenu> {
             graphics.drawString(this.font, "Niveau: " + colony.getInt("Level"), 8, y, 0xFFFFFF); y += 12;
             graphics.drawString(this.font, "Ouvriers: " + colony.getInt("Workers")
                     + "/" + colony.getInt("MaxWorkers"), 8, y, 0xFFFFFF); y += 12;
-            graphics.drawString(this.font, "Cabanes: " + colony.getInt("Huts"), 8, y, 0xFFFFFF); y += 16;
+            graphics.drawString(this.font, "Cabanes: " + colony.getInt("Huts"), 8, y, 0xFFFFFF); y += 12;
+            graphics.drawString(this.font, "Salaires payes: " + colony.getInt("WageCoverage") + "%",
+                    8, y, colony.getInt("WageCoverage") >= 100 ? 0x55FF55 : 0xFFAA55); y += 16;
             graphics.drawString(this.font, "--- Stock ---", 8, y, 0xFFAAAA); y += 12;
-            CompoundTag wh = colony.getCompound("Warehouse");
+            ListTag lots = colony.getList("WarehouseLots", Tag.TAG_COMPOUND);
             int shown = 0;
-            for (String key : wh.getAllKeys()) {
-                if (shown++ > 10) break;
-                String name = key.contains(":") ? key.substring(key.indexOf(':') + 1) : key;
-                graphics.drawString(this.font, name + " x" + wh.getInt(key), 8, y, 0xCCCCCC);
-                y += 10;
+            for (int i = 0; i < lots.size() && shown < 12; i++) {
+                CompoundTag lot = lots.getCompound(i);
+                String key = lot.getString("Id");
+                int amount = lot.getInt("Amount");
+                var itemOpt = BuiltInRegistries.ITEM.getOptional(net.minecraft.resources.ResourceLocation.parse(key));
+                Component label = itemOpt.isPresent()
+                        ? itemOpt.get().value().getDescription()
+                        : Component.literal(key);
+                graphics.drawString(this.font, label.getString() + " x" + amount, 8, y, 0xCCCCCC);
+                y += 10; shown++;
             }
         } else {
             graphics.drawString(this.font, "Synchronisation...", 8, y, 0xFF5555);

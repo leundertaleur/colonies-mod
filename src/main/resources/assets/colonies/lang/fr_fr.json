@@ -15,5 +15,12 @@
   "command.colonies.list_header": "Liste des colonies :",
   "command.colonies.no_colony": "Vous n'avez pas de colonie. Placez un Centre de Colonie !",
   "command.colonies.renamed": "Colonie renommée en %s",
-  "command.colonies.deleted": "Votre colonie a été supprimée."
+  "command.colonies.deleted": "Votre colonie a été supprimée.",
+  "block.colonies.knight_hut": "Caserne du Chevalier",
+  "entity.colonies.knight": "Chevalier de Colonie",
+  "command.colonies.deposited": "Déposé %s x %s dans l'entrepôt de la colonie.",
+  "command.colonies.withdrew": "Retiré %s x %s de l'entrepôt de la colonie.",
+  "command.colonies.stock": "%s : %s en stock.",
+  "command.colonies.hold_item": "Tenez l'objet %s en main principale pour le déposer.",
+  "command.colonies.empty_stock": "Stock vide pour %s."
 }

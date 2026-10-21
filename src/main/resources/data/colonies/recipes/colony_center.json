@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P ",
+    "PFP",
+    " P "
+  ],
+  "key": {
+    "P": "minecraft:oak_planks",
+    "F": "minecraft:iron_ingot"
+  },
+  "result": {
+    "id": "colonies:colony_center",
+    "count": 1
+  }
+}

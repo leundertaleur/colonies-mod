@@ -74,12 +74,13 @@ public class WorkerHutBlockEntity extends BlockEntity {
                 if (workerUuid != null) c.removeWorker(workerUuid);
             });
         }
-        Colonist worker = findWorker(level);
+        net.minecraft.world.entity.npc.Villager worker = findWorker(level);
         if (worker != null) worker.discard();
     }
 
     private void recruitIfNeeded(ServerLevel level) {
-        if (colonyId == -1 || getJob() == null) return;
+        ColonyJob existingJob = getJob();
+        if (colonyId == -1 || existingJob == null) return;
         if (findWorker(level) != null) return; // deja peuple
         ColonyManager manager = ColonyManager.getInstance();
         var opt = manager.getById(colonyId);
@@ -87,28 +88,42 @@ public class WorkerHutBlockEntity extends BlockEntity {
         Colony colony = opt.get();
         if (colony.getWorkerCount() >= colony.getMaxWorkers()) return;
 
-        Colonist colonist = ColonyEntities.COLONIST.get().create(level);
-        if (colonist == null) return;
+        net.minecraft.world.entity.npc.Villager worker;
+        ColonyJob job = getJob();
+        if (job.isKnight()) {
+            com.colonies.colony.Knight knight = ColonyEntities.KNIGHT.get().create(level);
+            if (knight == null) return;
+            knight.setColonyId(colony.getId());
+            knight.setColonyName(colony.getName());
+            knight.setPatrolCenter(worldPosition);
+            worker = knight;
+        } else {
+            Colonist colonist = ColonyEntities.COLONIST.get().create(level);
+            if (colonist == null) return;
+            colonist.setColonyId(colony.getId());
+            colonist.setColonyName(colony.getName());
+            colonist.setJobName(job.getId());
+            colonist.setWorkPosition(worldPosition);
+            worker = colonist;
+        }
         BlockPos spawn = worldPosition.above();
-        colonist.moveTo(spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5, 0f, 0f);
-        colonist.setPersistenceRequired();
-        colonist.setColonyId(colony.getId());
-        colonist.setColonyName(colony.getName());
-        colonist.setJobName(getJob().getId());
-        colonist.setWorkPosition(worldPosition);
-        level.addFreshEntity(colonist);
-        this.workerUuid = colonist.getUUID();
-        colony.addWorker(colonist.getUUID());
+        worker.moveTo(spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5, 0f, 0f);
+        worker.setPersistenceRequired();
+        level.addFreshEntity(worker);
+        this.workerUuid = worker.getUUID();
+        colony.addWorker(worker.getUUID());
         manager.save(level.getServer());
-        Colonies.LOGGER.info("Colon '{}' recrute pour la colonie {}", getJob().getId(), colony.getName());
+        Colonies.LOGGER.info("Ouvrier '{}' recrute pour la colonie {}", job.getId(), colony.getName());
     }
 
     @Nullable
-    private Colonist findWorker(Level level) {
+    private net.minecraft.world.entity.npc.Villager findWorker(Level level) {
         if (workerUuid == null) return null;
-        for (Colonist entity : level.getEntitiesOfClass(Colonist.class,
-                new net.minecraft.world.phys.AABB(worldPosition).inflate(16))) {
-            if (entity.getUUID().equals(workerUuid) && entity.isAlive()) {
+        for (net.minecraft.world.entity.npc.Villager entity :
+                level.getEntitiesOfClass(net.minecraft.world.entity.npc.Villager.class,
+                        new net.minecraft.world.phys.AABB(worldPosition).inflate(16))) {
+            if ((entity instanceof Colonist || entity instanceof com.colonies.colony.Knight)
+                    && entity.getUUID().equals(workerUuid) && entity.isAlive()) {
                 return entity;
             }
         }

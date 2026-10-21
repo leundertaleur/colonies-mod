@@ -2,6 +2,7 @@ package com.colonies.registration;
 
 import com.colonies.Colonies;
 import com.colonies.colony.Colonist;
+import com.colonies.colony.Knight;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -18,4 +19,10 @@ public class ColonyEntities {
             () -> EntityType.Builder.of(Colonist::new, MobCategory.CREATURE)
                     .sized(0.6f, 1.95f)
                     .build("colonist"));
+
+    // Le chevalier : defend la colonie contre les monstres.
+    public static final Supplier<EntityType<Knight>> KNIGHT = ENTITY_TYPES.register("knight",
+            () -> EntityType.Builder.of(Knight::new, MobCategory.CREATURE)
+                    .sized(0.6f, 1.95f)
+                    .build("knight"));
 }

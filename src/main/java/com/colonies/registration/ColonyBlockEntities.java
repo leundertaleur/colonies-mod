@@ -22,5 +22,5 @@ public class ColonyBlockEntities {
                     () -> BlockEntityType.Builder.of(WorkerHutBlockEntity::new,
                             ColonyBlocks.FORESTER_HUT.get(), ColonyBlocks.MINER_HUT.get(),
                             ColonyBlocks.FARMER_HUT.get(), ColonyBlocks.SAWMILL_HUT.get(),
-                            ColonyBlocks.STORES_HUT.get()).build(null));
+                            ColonyBlocks.STORES_HUT.get(), ColonyBlocks.KNIGHT_HUT.get()).build(null));
 }

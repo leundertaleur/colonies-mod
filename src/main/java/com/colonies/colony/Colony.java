@@ -1,35 +1,40 @@
 package com.colonies.colony;
 
 import com.colonies.api.ColonyJob;
+import com.colonies.api.ColonyResource;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/** Represente une colonie : territoire, nom, cabanes, ouvriers et stock. */
+/** Represente une colonie : territoire, nom, cabanes, ouvriers, stock, nourriture et salaires. */
 public class Colony {
+    /** Duree d'une "journee de colonie" en ticks serveur (10 min reelles). */
+    public static final int COLONY_DAY_TICKS = 12000;
+
     private final int id;
     private String name = "Colonie";
     private UUID ownerUUID;
     private BlockPos centerPos = BlockPos.ZERO;
     private int radius = 20;
     private int level = 1;
+    /** Compteur temps pour la journee de colonie (nourriture/salaires). */
+    private long dayTimer = 0;
 
     /** Positions des cabanes d'ouvriers -> metier associe. */
     private final Map<BlockPos, ColonyJob> huts = new HashMap<>();
     /** Colons actifs (uuid). */
     private final List<UUID> workers = new ArrayList<>();
-    /** Stock de la colonie (item -> quantite simplifiee). */
-    private final Map<String, Integer> warehouse = new HashMap<>();
+    /** Stock de la colonie sous forme de lots (item + quantite), alimente par la production. */
+    private final Map<String, ColonyResource> warehouse = new LinkedHashMap<>();
 
     public Colony(int id) { this.id = id; }
 
@@ -57,12 +62,45 @@ public class Colony {
     public List<UUID> getWorkers() { return workers; }
     public int getWorkerCount() { return workers.size(); }
 
+    // ---------- Entrepot ----------
     public void addToStock(ItemStack stack) {
-        String key = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        warehouse.merge(key, stack.getCount(), Integer::sum);
+        if (stack.isEmpty()) return;
+        ColonyResource res = new ColonyResource(stack, stack.getCount());
+        warehouse.merge(res.key(), res, (a, b) -> a.withAmount(a.amount() + b.amount()));
     }
 
-    public Map<String, Integer> getWarehouse() { return warehouse; }
+    public void addToStock(String key, int amount) {
+        if (amount <= 0) return;
+        var itemOpt = net.minecraft.core.registries.BuiltInRegistries.ITEM
+                .getOptional(net.minecraft.resources.ResourceLocation.parse(key));
+        if (itemOpt.isEmpty()) return;
+        ColonyResource res = new ColonyResource(new ItemStack(itemOpt.get()), amount);
+        warehouse.merge(key, res, (a, b) -> a.withAmount(a.amount() + b.amount()));
+    }
+
+    /** Retire jusqu'a `amount` units de l'item ; retourne le nombre reellement retire. */
+    public int removeFromStock(String key, int amount) {
+        ColonyResource res = warehouse.get(key);
+        if (res == null || amount <= 0) return 0;
+        int removed = Math.min(res.amount(), amount);
+        ColonyResource remaining = res.withAmount(res.amount() - removed);
+        if (remaining == null) warehouse.remove(key); else warehouse.put(key, remaining);
+        return removed;
+    }
+
+    public int getStock(String key) {
+        ColonyResource res = warehouse.get(key);
+        return res == null ? 0 : res.amount();
+    }
+
+    public Map<String, ColonyResource> getWarehouseResources() { return warehouse; }
+
+    /** Legacy : vue simple cle -> quantite (utilisée par l'UI synchronisee). */
+    public Map<String, Integer> getWarehouse() {
+        Map<String, Integer> view = new LinkedHashMap<>();
+        warehouse.forEach((k, r) -> view.put(k, r.amount()));
+        return view;
+    }
 
     public int getMaxWorkers() { return level * 5; }
 
@@ -73,13 +111,51 @@ public class Colony {
             addToStock(icon);
         }
         //XP de colonie fictive : level up tous les 100 objets stockes
-        int total = warehouse.values().stream().mapToInt(Integer::intValue).sum();
+        int total = warehouse.values().stream().mapToInt(ColonyResource::amount).sum();
         int expectedLevel = 1 + total / 100;
         if (expectedLevel > this.level) setLevel(expectedLevel);
     }
 
+    /**
+     * Fin d'une journee de colonie : nourriture + salaires.
+     * Chaque ouvrier mange 1 pain et recoit son salaire en emeraudes depuis l'entrepot.
+     * Sans nourriture suffisante, les colons refusent de travailler (bonus de production coupe).
+     */
+    public boolean feedAndPayWorkers() {
+        int neededFood = Math.max(1, getWorkerCount());
+        int eaten = removeFromStock("minecraft:bread", neededFood);
+        boolean fed = eaten >= neededFood;
+        if (fed) {
+            int totalWage = 0;
+            for (ColonyJob job : huts.values()) totalWage += job.getWage();
+            // On paie dans la limite du stock disponible : les non-payes reduisent la motivation.
+            int paid = removeFromStock("minecraft:emerald", totalWage);
+            lastWagePaid = totalWage > 0 ? paid * 100 / totalWage : 100;
+        } else {
+            lastWagePaid = 0;
+        }
+        return fed;
+    }
+
+    private int lastWagePaid = 100;
+    public int getWageCoverage() { return lastWagePaid; }
+
+    /** Retourne false si la colonie ne peut pas nourrir ses ouvriers ce jour-la. */
+    public void advanceDay() {
+        feedAndPayWorkers();
+    }
+
     private void setLevel(int newLevel) {
         this.level = Math.min(newLevel, 5);
+    }
+
+    /** Tick appele regulierement par ColonyManager ; gere le cycle jour/nuit de colonie. */
+    public void colonyTick(long gameTime) {
+        dayTimer++;
+        if (dayTimer >= COLONY_DAY_TICKS / 4) { // un "jour" toutes les ~5 min pour le gameplay
+            dayTimer = 0;
+            advanceDay();
+        }
     }
 
     // ---------- NBT ----------
@@ -91,6 +167,7 @@ public class Colony {
         tag.putLong("Center", centerPos.asLong());
         tag.putInt("Radius", radius);
         tag.putInt("Level", level);
+        tag.putLong("DayTimer", dayTimer);
 
         ListTag hutList = new ListTag();
         huts.forEach((pos, job) -> {
@@ -109,9 +186,9 @@ public class Colony {
         });
         tag.put("Workers", workerList);
 
-        CompoundTag wh = new CompoundTag();
-        warehouse.forEach(wh::putInt);
-        tag.put("Warehouse", wh);
+        ListTag whList = new ListTag();
+        warehouse.values().forEach(r -> whList.add(r.toTag()));
+        tag.put("WarehouseLots", whList);
         return tag;
     }
 
@@ -122,6 +199,7 @@ public class Colony {
         colony.centerPos = BlockPos.of(tag.getLong("Center"));
         colony.radius = tag.getInt("Radius");
         colony.level = Math.max(1, tag.getInt("Level"));
+        colony.dayTimer = tag.getLong("DayTimer");
         ListTag hutList = tag.getList("Huts", Tag.TAG_COMPOUND);
         for (int i = 0; i < hutList.size(); i++) {
             CompoundTag t = hutList.getCompound(i);
@@ -132,8 +210,19 @@ public class Colony {
         for (int i = 0; i < workerList.size(); i++) {
             colony.workers.add(workerList.getCompound(i).getUUID("Uuid"));
         }
-        CompoundTag wh = tag.getCompound("Warehouse");
-        for (String key : wh.getAllKeys()) colony.warehouse.put(key, wh.getInt(key));
+        // Nouveau format : liste de lots
+        if (tag.contains("WarehouseLots", Tag.TAG_LIST)) {
+            ListTag whList = tag.getList("WarehouseLots", Tag.TAG_COMPOUND);
+            for (int i = 0; i < whList.size(); i++) {
+                ColonyResource res = ColonyResource.fromTag(whList.getCompound(i));
+                if (res != null) colony.warehouse.put(res.key(), res);
+            }
+        }
+        // Retro-compat ancien format (map cle->int) fusionnee si presente
+        if (tag.contains("Warehouse", Tag.TAG_COMPOUND)) {
+            CompoundTag wh = tag.getCompound("Warehouse");
+            for (String key : wh.getAllKeys()) colony.addToStock(key, wh.getInt(key));
+        }
         return colony;
     }
 
@@ -146,9 +235,10 @@ public class Colony {
         tag.putInt("Workers", workers.size());
         tag.putInt("MaxWorkers", getMaxWorkers());
         tag.putInt("Huts", huts.size());
-        CompoundTag wh = new CompoundTag();
-        warehouse.forEach(wh::putInt);
-        tag.put("Warehouse", wh);
+        tag.putInt("WageCoverage", lastWagePaid);
+        ListTag whList = new ListTag();
+        warehouse.values().forEach(r -> whList.add(r.toTag()));
+        tag.put("WarehouseLots", whList);
         return tag;
     }
 }

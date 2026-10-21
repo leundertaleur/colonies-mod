@@ -32,6 +32,10 @@ public class ColonyBlocks {
     public static final DeferredBlock<WorkerHutBlock> STORES_HUT = BLOCKS.register("stores_hut",
             () -> new WorkerHutBlock(null, props(DyeColor.BLUE)));
 
+    // La caserne : recrute un Chevalier qui defend la colonie.
+    public static final DeferredBlock<WorkerHutBlock> KNIGHT_HUT = BLOCKS.register("knight_hut",
+            () -> new WorkerHutBlock(com.colonies.api.ColonyJob.KNIGHT, props(DyeColor.RED)));
+
     private static BlockBehaviour.Properties props(DyeColor color) {
         return BlockBehaviour.Properties.of()
                 .mapColor(color.getMapColor())

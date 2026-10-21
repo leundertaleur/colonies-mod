@@ -24,6 +24,7 @@ public class ColonyCreativeTab {
                         output.accept(ColonyItems.FARMER_HUT.get());
                         output.accept(ColonyItems.SAWMILL_HUT.get());
                         output.accept(ColonyItems.STORES_HUT.get());
+                        output.accept(ColonyItems.KNIGHT_HUT.get());
                         output.accept(ColonyItems.COLONY_TOOL.get());
                     })
                     .build());

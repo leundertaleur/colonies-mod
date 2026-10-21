@@ -80,6 +80,10 @@ public class ColonyManager {
             }
             save(server);
         }
+        // Cycle journee de colonie : nourriture + salaires
+        for (Colony colony : colonies.values()) {
+            colony.colonyTick(time);
+        }
         if (time % 40 == 0) {
             for (ServerPlayer sp : server.getPlayerList().getPlayers()) {
                 getColonyFor(sp).ifPresent(colony ->
